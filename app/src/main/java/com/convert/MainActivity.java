@@ -1,6 +1,7 @@
 package com.convert;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -12,6 +13,7 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.convert.manager.HomePageManager;
 import com.convert.ui.SpaceItemDecoration;
 import com.convert.manager.Book;
 import com.convert.manager.BookAdapter;
@@ -19,21 +21,32 @@ import com.convert.manager.Test_Search_Biquge;
 
 import java.util.ArrayList;
 
+import static com.convert.manager.Book.BOOK;
+
 public class MainActivity extends AppCompatActivity {
 
-    private String TAG = "qq_MainActivity";
+    private final String TAG = "Track_MainActivity";
+    private final int INIT_BOOKS = 211;
+    private int REQUEST_CODE = 1;
+    private int mPosition = 0;
     private static int REQUEST_WRITE_EXTERNAL_STORAGE = 1;
+    private HomePageManager mHomePageManager;
+    private BookAdapter mAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Log.i(TAG,"Start");
+        Log.i(TAG, "onCreate");
         //检查权限，没有权限再申请
         checkPermission();
 
-        getdwrm();
+        //初始化
+        mHomePageManager = HomePageManager.getInstance(MainActivity.this);
+
+        //初始化书架
+        initBookList();
         //测试文件位置
         //Log.i(TAG,this.getCacheDir().toString());///data/user/0/com.convert/cache
         //Log.i(TAG,this.getFilesDir().toString());///data/user/0/com.convert/file
@@ -41,6 +54,27 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        //返回的数据，更新当前阅读章节id
+        if (data == null) {
+            Log.w(TAG, "onActivityResult: data == null");
+            Log.i(TAG, "onActivityResult: requestCode = " + requestCode);
+            Log.i(TAG, "onActivityResult: resultCode = " + resultCode);
+            return ;
+        }
+        int result = data.getIntExtra("result", 0);
+        Log.i(TAG, "onActivityResult: result = " + result);
+        ArrayList<Book> bookList = mHomePageManager.getBookList();
+        if (bookList == null || bookList.isEmpty()){
+            Log.w(TAG, "onActivityResult: bookList onClick: bookList == null || bookList.isEmpty()");
+            return;
+        }
+        Book book = bookList.get(mPosition);
+        book.setCurrentChapterNum(result);
+        mAdapter.notifyItemChanged(mPosition);
+    }
 
     private void checkPermission() {
         //检查权限（NEED_PERMISSION）是否被授权 PackageManager.PERMISSION_GRANTED表示同意授权
@@ -61,71 +95,94 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    //test
-    private void initData() {
-
-        for (int i = 0; i < 1; i++) {
-            Log.i(TAG,Test_Search_Biquge.getChapterList("大王饶命").get(0).toString());
-            Book dwrm = new Book("大王饶命", Test_Search_Biquge.getImageBitmap("大王饶命"), Test_Search_Biquge.getChapterList("大王饶命"));
-            //bookList.add(dwrm);
+    private void initView(ArrayList<Book> bookList) {
+        if (bookList == null || bookList.isEmpty()){
+            Log.w(TAG, "initView: bookList == null || bookList.isEmpty()");
+            return;
         }
-    }
-
-    private void initView(ArrayList<Book> bookList){
-        BookAdapter adapter = new BookAdapter(bookList);
+        //初始化书籍列表
+        mAdapter = new BookAdapter(MainActivity.this, bookList);
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.BookList);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
         //设置偏移量
         recyclerView.addItemDecoration(new SpaceItemDecoration(6));
-        recyclerView.setAdapter(adapter);
+        recyclerView.setAdapter(mAdapter);
 
-        adapter.setOnItemClickListener(new BookAdapter.OnItemClickListener() {
+        mAdapter.setOnItemClickListener(new BookAdapter.OnItemClickListener() {
             @Override
             public void onClick(int position) {
-                Toast.makeText(MainActivity.this,"您点击了"+position+"行",Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(MainActivity.this, ReadActivity.class);
+                ArrayList<Book> bookList = mHomePageManager.getBookList();
+                //判空
+                if (bookList == null || bookList.isEmpty()){
+                    Log.w(TAG, "bookList onClick: bookList == null || bookList.isEmpty()");
+                    return;
+                }
+                Book book = bookList.get(position);
+                //判空
+                if (book == null){
+                    Log.w(TAG, "bookList onClick: book == null");
+                    return;
+                }
+                //开始阅读，需要传入 Book
+//                String bookName = book.getName();
+//                int currentChapter = book.getCurrentChaterNum();
+                intent.putExtra(BOOK, book);
+                mPosition = position;
+                startActivityForResult(intent, REQUEST_CODE);
+                Log.i(TAG, "bookList onClick: " + "点击了" + position + "行");
             }
+
             @Override
             public void onLongClick(int position) {
-                Toast.makeText(MainActivity.this,"您长按点击了"+position+"行",Toast.LENGTH_SHORT).show();
+                Log.i(TAG, "bookList onLongClick: " + "点击了" + position + "行");
+                //Toast.makeText(MainActivity.this, "您长按点击了" + position + "行", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(MainActivity.this, TestActivity.class);
+                startActivity(intent);
             }
         });
     }
 
     //test use network
-    private void getdwrm(){
-        new Thread("url...#大王饶命"){
-            private String bookShop;
+    private void initBookList() {
+        new Thread() {
             private String bookName;
+
             @Override
-            public void run(){
+            public void run() {
                 //panduan shifou weikong
-                //第三次改动2018.7.7，增加print的log.i。改变msg的传输格式，book的image保存方式Bitmap代替String
-                bookName = currentThread().getName().split("#")[1];
-                Log.i(TAG,"getdwrm start " + bookName);
-                Book dwrm = new Book(bookName, Test_Search_Biquge.getImageBitmap(bookName), Test_Search_Biquge.getChapterList(bookName));
-                Log.i(TAG,dwrm.getChapterList().get(0).getName());
+                //第三次改动2018.7.7，增加 print 的 log.i。改变msg的传输格式，book的image保存方式Bitmap代替String
+                //正在进行第四次结构改动 2018.09.05
+                bookName = "大王饶命";
+                Log.i(TAG, "getdwrm start " + bookName);
+                Book dwrm = new Book(bookName, Test_Search_Biquge.getImageBitmap(bookName),
+                        Test_Search_Biquge.getChapterList(bookName), Test_Search_Biquge.getCurrentCptNum(bookName),
+                        null,null,0);
+                Log.i(TAG, dwrm.getChapterList().get(0).getName());
 
                 ArrayList<Book> bookList = new ArrayList<Book>();
-                if(dwrm != null)
+                if (dwrm != null) {
                     bookList.add(dwrm);
-                Bundle bundle = new Bundle();
-                bundle.putSerializable("bookList",bookList);
-                Message msg1 = new Message();
-                msg1.what = 211;
-                msg1.setData(bundle);
+                }
+                //初始化 book list
+                mHomePageManager.setBookList(bookList);
+                //初始化界面
+                Message msg1 = handler1.obtainMessage(INIT_BOOKS);
                 handler1.sendMessage(msg1);
+
+                //搜索
+                ArrayList<Book> books = Test_Search_Biquge.searchNovel("斗罗大陆");
             }
         }.start();
     }
 
-    private Handler handler1 = new Handler() {
+    public Handler handler1 = new Handler() {
         public void handleMessage(Message msg1) {
             switch (msg1.what) {
-                case 211:
-                    ArrayList<Book> bookList = null;
-                    Bundle bundle = msg1.getData();
-                    bookList = (ArrayList<Book>) bundle.getSerializable("bookList");
+                case INIT_BOOKS:
+                    ArrayList<Book> bookList = mHomePageManager.getBookList();
+                    //初始化界面
                     initView(bookList);
                     break;
                 default:

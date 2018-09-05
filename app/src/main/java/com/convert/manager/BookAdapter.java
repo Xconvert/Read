@@ -1,5 +1,7 @@
 package com.convert.manager;
 
+import android.content.Context;
+import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -8,6 +10,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.convert.R;
+import com.convert.ReadActivity;
 
 import java.util.ArrayList;
 
@@ -15,9 +18,11 @@ public class BookAdapter extends RecyclerView.Adapter<BookAdapter.ViewHolder> {
 
     private ArrayList<Book> mBookList;
     private OnItemClickListener mOnItemClickListener;
+    private Context mContext;
 
-    public BookAdapter( ArrayList<Book> mBookList) {
+    public BookAdapter(Context context, ArrayList<Book> mBookList) {
         this.mBookList = mBookList;
+        mContext = context;
     }
 
     //加载item 的布局  创建ViewHolder实例
@@ -35,7 +40,7 @@ public class BookAdapter extends RecyclerView.Adapter<BookAdapter.ViewHolder> {
 
         holder.imageView.setImageBitmap(book.getImage());
         holder.bookName.setText(book.getName());
-        holder.curChapter.setText("读至：" + book.getCurrentChaterName());
+        holder.curChapter.setText("读至：" + book.getCurrentChapterName());
 
         //点击事件
         if( mOnItemClickListener!= null){
