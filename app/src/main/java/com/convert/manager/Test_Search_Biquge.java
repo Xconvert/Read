@@ -58,9 +58,9 @@ public class Test_Search_Biquge {
      * @param NovelName
      * @return
      */
-    private static String getNovelHomePage(String NovelName) {
-        String html = ConnectionUtil.Connect("http://www.biquge.com.tw/18_18727/", "gbk");
-
+    private static String getNovelHomePage(String address, String NovelName) {
+        //String html = ConnectionUtil.Connect("http://www.biquge.com.tw/18_18727/", "gbk");
+        String html = ConnectionUtil.Connect(address, "gbk");
         if (html == null || html.equals("")) {
             print("html is null in getNovelHomePage");
             return null;
@@ -72,7 +72,7 @@ public class Test_Search_Biquge {
             file.mkdirs();
             //save this novel brief UI
             //SaveDataToFile.saveDataToFile(html, name + "/" + NovelName + ".txt");
-            SaveDataToFile.saveDataToFile("http://www.biquge.com.tw/18_18727/", name + "/" + NovelName + ".txt");
+            //SaveDataToFile.saveDataToFile("http://www.biquge.com.tw/18_18727/", name + "/" + NovelName + ".txt");
 
         }
         return html;
@@ -84,7 +84,12 @@ public class Test_Search_Biquge {
      * @param //Url
      * @return
      */
-    public static String getNovelOnePage(String Novel, int chapterN) {
+    public static String getNovelOnePage(Book book, int chapterN) {
+        if (book == null) {
+            print("book is null");
+            return null;
+        }
+        String Novel = book.getName();
         if (Novel.equals("")) {
             print("novel name is null");
             return null;
@@ -96,7 +101,7 @@ public class Test_Search_Biquge {
         StringBuilder pageValue = null;
         if (!file.exists()) {
             //本地文件没有数据，联网抓取
-            ArrayList<Chapter> chptList = getChapterList(Novel);
+            ArrayList<Chapter> chptList = getChapterList(book.getAddress(), Novel);
             if (chptList == null) {
                 print("chptList is null");
                 return "未更新";
@@ -151,7 +156,7 @@ public class Test_Search_Biquge {
      * @param //html
      * @return
      */
-    public static ArrayList<Chapter> getChapterList(String NovelName) {
+    public static ArrayList<Chapter> getChapterList(String address, String NovelName) {
         if (NovelName == null || NovelName.equals(""))
             return null;
 
@@ -163,7 +168,7 @@ public class Test_Search_Biquge {
         if (!file.exists()) {
             //本地没有文件，联网获取数据
             Log.i(TAG, "get chapterList data link to Internet");
-            String html = getNovelHomePage(NovelName);
+            String html = getNovelHomePage(address, NovelName);
             if (html == null || html.equals("")) {
                 print("html is null in getChapterList");
                 return null;
@@ -213,7 +218,7 @@ public class Test_Search_Biquge {
         return chapterList;
     }
 
-    public static Bitmap getImageBitmap(String NovelName) {
+    public static Bitmap getImageBitmap(String address, String NovelName) {
         if (NovelName == null || NovelName.length() == 0) return null;
         Bitmap bitmap = null;
         //build a new file to save novel Image
@@ -223,9 +228,9 @@ public class Test_Search_Biquge {
         if (!file.exists()) {
             //本地没有文件，联网获取数据
             Log.i(TAG, "get Image data link to Internet");
-            String html = getNovelHomePage(NovelName);
+            String html = getNovelHomePage(address, NovelName);
             if (html == null || html.equals("")) {
-                print("html is null in getImage");
+                print("html is null in getImage . address is " + address);
                 //Log.i(TAG,"html is null in getImage");
                 return null;
             }
@@ -317,28 +322,6 @@ public class Test_Search_Biquge {
         return bitmap;
     }
 
-    public static int getCurrentCptNum(String NovelName) {
-        if (NovelName == null || NovelName.length() == 0) return 0;
-
-        String filename = SaveDataToFile.AppPath + (String) "/Novel-" + NovelName + "/" + "currentCptNum.txt";
-        File file = new File(filename);
-        if (file.exists()) {
-            StringBuilder stringBuilder = SaveDataToFile.getPageData(filename);
-            if (stringBuilder != null) {
-                return Integer.parseInt(stringBuilder.toString().replace("\n", ""));
-            }
-        }
-        //默认
-        return 0;
-    }
-
-    public static void saveCurrentCptNum(String NovelName, int currentCptNum) {
-        //currentCptNum >= 0
-        if (NovelName == null || NovelName.length() == 0) return;
-
-        String filename = SaveDataToFile.AppPath + (String) "/Novel-" + NovelName + "/" + "currentCptNum.txt";
-        SaveDataToFile.saveDataToFile(String.valueOf(currentCptNum), filename);
-    }
 
     //url编码
     private static String getURLEncoderString(String str) {
@@ -356,11 +339,13 @@ public class Test_Search_Biquge {
 
     //搜索书本
     public static ArrayList<Book> searchNovel(String NovelName) {
+        Log.i(TAG, "searchNovel: NovelName is " + NovelName);
         ArrayList<Book> books = new ArrayList<>();
         if (NovelName == null || NovelName.isEmpty()) return books;
 
         String address = "http://www.biquge.com.tw/modules/article/soshu.php?searchkey=" + getURLEncoderString(NovelName);
         String html = ConnectionUtil.Connect(address, "gbk");
+        //Log.d(TAG, "html: " + html);
         //6 个信息为一部小说
         Pattern novelPattern = Pattern.compile("<td class=.*</td>");
         Matcher novelMatcher = novelPattern.matcher(html);
@@ -391,6 +376,7 @@ public class Test_Search_Biquge {
             Book book = new Book(name, null, new ArrayList<Chapter>(), 0, author, addr, state);
             books.add(book);
         }
+        Log.i(TAG, "searchNovel: " + books.size());
         return books;
     }
 

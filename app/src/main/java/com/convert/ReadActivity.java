@@ -3,6 +3,8 @@ package com.convert;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
@@ -11,21 +13,24 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.convert.manager.Book;
 import com.convert.manager.ReadPageManager;
-import com.convert.manager.Test_Search_Biquge;
+import com.convert.manager.Respond;
 
 import static com.convert.manager.Book.BOOK;
 
-public class ReadActivity extends AppCompatActivity {
+public class ReadActivity extends AppCompatActivity implements Respond{
 
     private final static String TAG = "Track_ReadActivity";
+    //点击事件
     private final int DEFAULT = 0;
     private final int NEXT_PAGE = 1;
     private final int PRE_PAGE = 2;
     private final int MENU = 3;
+
+    private final int MAG_INIT_PAGE = 0;
+    private final int MAG_UPDATE_PAGE = 1;
     private ReadPageManager mReadPageManager;
     private TextView mTextView;
     private int mScreenWidth = 0; // 屏幕宽
@@ -47,8 +52,6 @@ public class ReadActivity extends AppCompatActivity {
         initData();
 
         //加个动画 2s
-
-        initView();
     }
 
     @Override
@@ -79,7 +82,7 @@ public class ReadActivity extends AppCompatActivity {
     protected void onDestroy(){
         super.onDestroy();
         Log.i(TAG, "onDestroy");
-        Test_Search_Biquge.saveCurrentCptNum(mReadPageManager.getBookName(), mReadPageManager.getCptNum());
+        mReadPageManager.saveCurrentCptNum();
         mReadPageManager.clear();
         mReadPageManager = null;
     }
@@ -207,7 +210,7 @@ public class ReadActivity extends AppCompatActivity {
         Intent intent = getIntent();
         Book book = (Book) intent.getSerializableExtra(BOOK);
         Log.i(TAG, "initData: get book " + book.getName());
-        mReadPageManager.setBook(book);
+        mReadPageManager.setBook(this, book);
         //设置页面行数
         getScreenSize();
     }
@@ -252,11 +255,58 @@ public class ReadActivity extends AppCompatActivity {
             if (!mReadPageManager.isFirstPage()){
                 String page = mReadPageManager.prePage();
                 if (page == null){
-                    Log.w(TAG, "prePage: page is null");
+                    Log.w(TAG, "nextPage: page is null");
                     finish();
                 }
                 mTextView.setText(page);
             }
         }
     }
+
+    @Override
+    public void initBookList(){
+        Log.i(TAG, "updateBookList");
+
+    }
+
+    @Override
+    public void report(){
+        Log.i(TAG, "report");
+        //设置 list view
+        Message msg1 = handler2.obtainMessage(MAG_INIT_PAGE);
+        handler2.sendMessage(msg1);
+    }
+
+    @Override
+    public void updatePage(String page){
+        Log.i(TAG, "updatePage");
+        if (page == null){
+            Log.w(TAG, "nextPage: page is null");
+            finish();
+        }
+        //设置 list view
+        Message msg1 = handler2.obtainMessage(MAG_INIT_PAGE);
+        msg1.obj = page;
+        handler2.sendMessage(msg1);
+    }
+
+    private Handler handler2 = new Handler() {
+        public void handleMessage(Message msg1) {
+            switch (msg1.what) {
+                case MAG_INIT_PAGE:
+                    //初始化界面
+                    initView();
+                    break;
+                case MAG_UPDATE_PAGE:
+                    //更新界面
+                    String page = msg1.obj.toString();
+                    mTextView.setText(page);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        ;
+    };
 }

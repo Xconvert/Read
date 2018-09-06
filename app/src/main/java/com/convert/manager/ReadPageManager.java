@@ -44,19 +44,19 @@ public class ReadPageManager {
         return sReadPageManager;
     }
 
-    public void setBook(Book book) {
+    public void setBook(Respond respond, Book book) {
         mBook = new Book(book);
         //获取当前章节内容
-        getCurrentChapter();
+        getCurrentChapter(respond);
     }
 
-    private void getCurrentChapter() {
+    private void getCurrentChapter(final Respond respond) {
         new Thread() {
             @Override
             public void run() {
                 //获取当前章节内容
                 if (mBook != null) {
-                    mCurrentChapterContent = Test_Search_Biquge.getNovelOnePage(mBook.getName(),
+                    mCurrentChapterContent = Test_Search_Biquge.getNovelOnePage(mBook,
                             mBook.getCurrentChapterNum() + 1);
                 } else {
                     Log.w(TAG, "getCurrentChapter: mBook is null");
@@ -64,6 +64,9 @@ public class ReadPageManager {
 
                 //用 mCurrentChapterContent 更新 page 列表
                 createPageList();
+                if (respond != null){
+                    respond.report();
+                }
             }
         }.start();
     }
@@ -144,7 +147,7 @@ public class ReadPageManager {
             int chapterNum = mBook.getCurrentChapterNum() + 1;
             Log.i(TAG, "nextPage: chapterNum " + chapterNum);
             mBook.setCurrentChapterNum(chapterNum);
-            getCurrentChapter();
+            getCurrentChapter(null);
             //进入下一章
             mCurrentPage = -1;
             return result;
@@ -154,7 +157,7 @@ public class ReadPageManager {
             int chapterNum = mBook.getCurrentChapterNum() + 1;
             Log.i(TAG, "nextPage: chapterNum " + chapterNum);
             mBook.setCurrentChapterNum(chapterNum);
-            getCurrentChapter();
+            getCurrentChapter(null);
             //进入下一章
             mCurrentPage = 0;
         }
@@ -172,7 +175,7 @@ public class ReadPageManager {
             int chapterNum = mBook.getCurrentChapterNum() - 1;
             if (chapterNum != -1) {
                 mBook.setCurrentChapterNum(chapterNum);
-                getCurrentChapter();
+                getCurrentChapter(null);
                 //进入上一章,以后改进
                 sleep(100);
                 mCurrentPage = mPageList.size();
@@ -184,7 +187,7 @@ public class ReadPageManager {
             int chapterNum = mBook.getCurrentChapterNum() - 1;
             if (chapterNum != -1){
                 mBook.setCurrentChapterNum(chapterNum);
-                getCurrentChapter();
+                getCurrentChapter(null);
                 //进入上一章,以后改进
                 sleep(100);
                 mCurrentPage = mPageList.size() - 1;
@@ -231,6 +234,10 @@ public class ReadPageManager {
             return 0;
         }
         return mBook.getCurrentChapterNum();
+    }
+
+    public void saveCurrentCptNum(){
+        SaveDataToFile.saveCurrentCptNum(getBookName(), getCptNum());
     }
 
     public void clear(){

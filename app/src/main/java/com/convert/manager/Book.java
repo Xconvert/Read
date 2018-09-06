@@ -110,7 +110,7 @@ public class Book implements Serializable {
     }
 
     public String getAuthor(){
-        return Address;
+        return Author;
     }
 
     public int getState(){
