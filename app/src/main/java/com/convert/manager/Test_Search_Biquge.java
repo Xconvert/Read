@@ -147,8 +147,7 @@ public class Test_Search_Biquge {
      * @param s
      */
     public static void print(String s) {
-        System.out.println(s);
-        Log.i(TAG, s);
+        Log.i(TAG, "print: " + s);
     }
 
     /***

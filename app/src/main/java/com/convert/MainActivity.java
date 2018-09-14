@@ -33,6 +33,7 @@ import com.convert.manager.SearchBookListAdapter;
 import com.convert.ui.SpaceItemDecoration;
 import com.convert.manager.Book;
 import com.convert.manager.BookAdapter;
+import com.wang.avi.AVLoadingIndicatorView;
 
 import java.util.ArrayList;
 
@@ -60,6 +61,7 @@ public class MainActivity extends AppCompatActivity implements Respond {
     private ImageView mBack;
     private EditText mInput;
     private TextView mSearch;
+    private AVLoadingIndicatorView mLoadingView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -163,6 +165,9 @@ public class MainActivity extends AppCompatActivity implements Respond {
         mBack = (ImageView) findViewById(R.id.imageBack);
         mInput = (EditText) findViewById(R.id.searchLine);
         mSearch = (TextView) findViewById(R.id.searchButton);
+        mLoadingView = (AVLoadingIndicatorView) findViewById(R.id.avloadingIndicatorView_BallClipRotate);
+        //不需要加载动画
+        dismissLoadingView();
 
         mBack.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -185,6 +190,8 @@ public class MainActivity extends AppCompatActivity implements Respond {
                     //没输入书名
                     Toast.makeText(MainActivity.this, "请输入书名", Toast.LENGTH_SHORT).show();
                 } else {
+                    //加载动画
+                    showLoadingView();
                     //搜索书本
                     mHomePageManager.searchNovel(bookName, MainActivity.this);
 
@@ -308,8 +315,8 @@ public class MainActivity extends AppCompatActivity implements Respond {
                         Log.i(TAG, "showDeleteDialog: deny");
                     }
         });
-
         builder.create().show();
+
     }
 
     //初始化收藏书单
@@ -327,7 +334,9 @@ public class MainActivity extends AppCompatActivity implements Respond {
         }.start();
     }
 
+    //要定义成 static 的类，可能会内存泄漏
     private Handler handler1 = new Handler() {
+        @Override
         public void handleMessage(Message msg1) {
             switch (msg1.what) {
                 case INIT_BOOKS:
@@ -335,6 +344,8 @@ public class MainActivity extends AppCompatActivity implements Respond {
                     initView();
                     break;
                 case INIT_SEARCH_BOOKS:
+                    //加载动画消失
+                    dismissLoadingView();
                     //设置 list view
                     initSearchList();
                     break;
@@ -348,9 +359,12 @@ public class MainActivity extends AppCompatActivity implements Respond {
                     break;
             }
         }
-
-        ;
     };
+
+    //不打算用这个
+    private class myHandler extends Handler {
+
+    }
 
     //toolbar
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -428,5 +442,14 @@ public class MainActivity extends AppCompatActivity implements Respond {
         super.onDestroy();
         Log.i(TAG, "onDestroy");
         mHomePageManager.clear();
+    }
+
+    //加载动画
+    private void showLoadingView(){
+        mLoadingView.setVisibility(View.VISIBLE);
+    }
+
+    private void dismissLoadingView(){
+        mLoadingView.setVisibility(View.GONE);
     }
 }

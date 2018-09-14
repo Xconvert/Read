@@ -16,7 +16,7 @@ public class ConnectionThread extends Thread {
     private String htmlcode = null;
 
     public ConnectionThread(String name) {
-        String [] tmp = name.split("@");
+        String[] tmp = name.split("@");
         address = tmp[0];
         htmlcode = tmp[1];
     }
@@ -30,28 +30,28 @@ public class ConnectionThread extends Thread {
         StringBuffer stringBuffer = null;
         try {
             url = new URL(address);
-            Log.i(TAG,address);
-            Log.i(TAG,htmlcode);
+            Log.i(TAG, address);
+            Log.i(TAG, htmlcode);
             conn = (HttpURLConnection) url.openConnection();
-            Log.i(TAG,conn.toString());
+            Log.i(TAG, conn.toString());
             conn.setConnectTimeout(5000);
             conn.setReadTimeout(5000);
             //conn.setDoInput(true);
             //conn.connect();
             conn.setRequestMethod("GET");
             in = conn.getInputStream();
-            Log.i(TAG,in.toString());
-            reader = new BufferedReader(new InputStreamReader(in,htmlcode));
+            Log.i(TAG, in.toString());
+            reader = new BufferedReader(new InputStreamReader(in, htmlcode));
             stringBuffer = new StringBuffer();
             String line = null;
-            while((line = reader.readLine()) != null){
+            while ((line = reader.readLine()) != null) {
                 stringBuffer.append(line).append('\n');
                 //Log.i(TAG,line);
             }
         } catch (Exception e) {
             e.printStackTrace();
 
-        } finally{
+        } finally {
             conn.disconnect();
             try {
                 in.close();
@@ -60,7 +60,7 @@ public class ConnectionThread extends Thread {
                 e.printStackTrace();
             }
         }
-        if(stringBuffer == null){
+        if (stringBuffer == null) {
             Log.i(TAG, "stringBuffer is null , get no data");
             return;
 

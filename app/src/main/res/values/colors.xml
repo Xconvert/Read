@@ -9,4 +9,7 @@
     <color name="grey_more">#D0D0D0</color>
     <color name="Black">#000000</color>
     <color name="HalfBlack">#EEFAFAFA</color>
+    <color name="Black2">#55000000</color>
+    <color name="Black0">#00000000</color>
+    <color name="red">#ff3333</color>
 </resources>

@@ -13,4 +13,41 @@
         android:lineSpacingExtra="20dp"
         android:textSize="18sp" />
 
+    <TextView
+        android:id="@+id/catalogue_background"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/Black2"/>
+
+    <!--章节菜单-->
+    <LinearLayout
+        android:id="@+id/catalogue_linearLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="15dp"
+        android:layout_marginRight="60dp"
+        android:layout_marginBottom="15dp"
+        android:layout_marginLeft="15dp"
+        android:background="@color/write"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/catalogue_title"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:text="目录"
+            android:layout_gravity="left"
+            android:gravity="center_vertical"
+            android:layout_marginLeft="20dp"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <ListView
+            android:id="@+id/catalogue"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+        </ListView>
+    </LinearLayout>
+
 </RelativeLayout>

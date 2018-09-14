@@ -20,7 +20,7 @@ public class Book implements Serializable {
     //状态，0连载，1完结
     private int State;
 
-    //当前阅读的章节
+    //当前阅读的章节，下标从零开始
     private int CurrentChapterNum = 0;
 
     //章节总数

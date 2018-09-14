@@ -27,6 +27,9 @@ public class ReadPageManager {
     //段落列表
     private String[] mParaList ;
 
+    //章节列表
+    private ArrayList<String> mCptList = new ArrayList<>();
+
     //一页行数
     private int mLineNum = 15;
     //一行字数
@@ -69,6 +72,12 @@ public class ReadPageManager {
                 }
             }
         }.start();
+    }
+
+    //获取章节
+    public void getChapter(int chapterId, Respond respond){
+        mBook.setCurrentChapterNum(chapterId);
+        getCurrentChapter(respond);
     }
 
     private void createPageList() {
@@ -240,9 +249,22 @@ public class ReadPageManager {
         SaveDataToFile.saveCurrentCptNum(getBookName(), getCptNum());
     }
 
+    public void setCptList(){
+        //目录数据
+        ArrayList<Chapter> arrayList = mBook.getChapterList();
+        for (Chapter cpt : arrayList){
+            mCptList.add(cpt.getName());
+        }
+    }
+
+    public ArrayList<String> getCptList() {
+        return mCptList;
+    }
+
     public void clear(){
         mPageList.clear();
         mLines.clear();
+        mCptList.clear();
         sReadPageManager = null;
     }
 

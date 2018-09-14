@@ -16,6 +16,7 @@
 
     </android.support.v7.widget.Toolbar>
 
+    <!--查找界面-->
     <LinearLayout
         android:id="@+id/topbar"
         android:layout_width="match_parent"
@@ -82,6 +83,8 @@
         </LinearLayout>
 
     </ScrollView>
+
+    <!--查找结果界面-->
     <ListView
         android:id="@+id/listView"
         android:layout_width="match_parent"
@@ -90,5 +93,19 @@
         android:background="@color/HalfBlack">
 
     </ListView>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center">
+
+        <com.wang.avi.AVLoadingIndicatorView
+            android:id="@+id/avloadingIndicatorView_BallClipRotate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="visible"
+            app:indicatorColor="@color/red"/>
+    </RelativeLayout>
+
 
 </android.support.constraint.ConstraintLayout>
